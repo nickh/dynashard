@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynashard}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Nick Hengeveld"]
@@ -24,13 +24,12 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
+    "dynashard.gemspec",
     "lib/dynashard.rb",
-    "lib/dynashard/arel_sql_engine.rb",
     "lib/dynashard/associations.rb",
     "lib/dynashard/connection_handler.rb",
     "lib/dynashard/model.rb",
     "lib/dynashard/validations.rb",
-    "spec/arel_sql_engine_spec.rb",
     "spec/associations_spec.rb",
     "spec/connection_handler_spec.rb",
     "spec/dynashard_spec.rb",
@@ -46,7 +45,6 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Dynamic sharding for ActiveRecord}
   s.test_files = [
-    "spec/arel_sql_engine_spec.rb",
     "spec/associations_spec.rb",
     "spec/connection_handler_spec.rb",
     "spec/db/schema.rb",
@@ -64,6 +62,7 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<activerecord>, [">= 3.0"])
+      s.add_runtime_dependency(%q<arel>, [">= 2.0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
@@ -71,6 +70,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activerecord>, [">= 3.0"])
     else
       s.add_dependency(%q<activerecord>, [">= 3.0"])
+      s.add_dependency(%q<arel>, [">= 2.0"])
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
@@ -79,6 +79,7 @@ Gem::Specification.new do |s|
     end
   else
     s.add_dependency(%q<activerecord>, [">= 3.0"])
+    s.add_dependency(%q<arel>, [">= 2.0"])
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
