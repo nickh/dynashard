@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynashard}
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Nick Hengeveld"]
-  s.date = %q{2011-01-31}
+  s.date = %q{2011-02-01}
   s.description = %q{Dynashard allows you to shard your ActiveRecord models.  Models can be configured to shard based on context that can be defined dynamically.}
   s.email = %q{nickh@verticalresponse.com}
   s.extra_rdoc_files = [
@@ -32,6 +32,8 @@ Gem::Specification.new do |s|
     "lib/dynashard/validations.rb",
     "spec/associations_spec.rb",
     "spec/connection_handler_spec.rb",
+    "spec/db/database.yml",
+    "spec/db/schema.rb",
     "spec/dynashard_spec.rb",
     "spec/model_spec.rb",
     "spec/spec_helper.rb",
