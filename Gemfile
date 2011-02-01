@@ -1,7 +1,6 @@
 source "http://rubygems.org"
 
 gem 'activerecord', '>= 3.0'
-gem 'arel', '>= 2.0'
 
 group :development do
   gem "shoulda", ">= 0"
