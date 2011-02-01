@@ -1,0 +1,16 @@
+shared: &shared
+  adapter: sqlite3
+  pool: 5
+  timeout: 5000
+
+test:
+  database: <%= plugin_test_dir %>/db/base.sqlite3
+  <<: *shared
+
+shard1:
+  database: <%= plugin_test_dir %>/db/shard1.sqlite3
+  <<: *shared
+
+shard2:
+  database: <%= plugin_test_dir %>/db/shard2.sqlite3
+  <<: *shared
