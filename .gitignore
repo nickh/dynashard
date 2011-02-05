@@ -1,6 +1,7 @@
 # Our tests
 spec/db/*.sqlite3
 spec/debug.log
+.irbrc
 
 # rcov generated
 coverage

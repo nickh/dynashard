@@ -146,6 +146,10 @@ establish_connection().
 
 ## TODO: add gotcha section, eg:
 
+ - many-to-many associations can only be used across shards in one
+   direction, where the association target and the join table exist
+   on the same database connection (else joins don't work.)
  - uniqueness validations should be scoped by whatever is sharding
  - ways to shoot yourself in the foot with non-sharding association
    owners of sharded models
+ - investigate proxy extend for association proxy

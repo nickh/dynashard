@@ -1,6 +1,6 @@
 # Sequence for generating unique names
 Factory.sequence :name do |n|
-  "Test Owner #{n}"
+  "Test Name #{n}"
 end
 
 Factory.define(:sharding_owner) do |owner|
@@ -29,4 +29,8 @@ end
 
 Factory.define(:sharded_has_many_through) do |one_of_many|
   one_of_many.name {Factory.next :name}
+end
+
+Factory.define(:sharded_habtm) do |habtm|
+  habtm.name {Factory.next :name}
 end

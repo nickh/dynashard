@@ -112,7 +112,11 @@ module Dynashard
   # Return a reflection with a sharded class
   def self.reflection_for(owner, reflection)
     reflection_copy = reflection.dup
-    shard_klass = Dynashard.class_for(owner.send(owner.class.dynashard_association_using))
+    shard_klass = if owner.class.respond_to?(:dynashard_klass)
+      owner.class.dynashard_klass
+    else
+      Dynashard.class_for(owner.send(owner.class.dynashard_association_using))
+    end
     klass = sharded_model_class(shard_klass, reflection.klass)
     reflection_copy.instance_variable_set('@klass', klass)
     reflection_copy.instance_variable_set('@class_name', klass.name)
@@ -138,6 +142,10 @@ module Dynashard
 
           def self.connection
             dynashard_klass.connection
+          end
+
+          def self.dynashard_context
+            superclass.dynashard_context
           end
         end
 EOE

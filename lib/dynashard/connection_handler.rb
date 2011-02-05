@@ -31,7 +31,7 @@ module Dynashard
         retrieve_connection_pool_without_dynashard(klass.dynashard_klass)
       elsif klass.sharding_enabled?
         spec = Dynashard.shard_context[klass.dynashard_context]
-        raise "Missing #{klass.dynashard_context} shard context" if spec.nil?
+        raise "Missing #{klass.dynashard_context} shard context for #{klass.name}" if spec.nil?
         spec = spec.call if spec.respond_to?(:call)
         shard_klass = Dynashard.class_for(spec)
         retrieve_connection_pool_without_dynashard(shard_klass)

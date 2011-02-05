@@ -39,6 +39,8 @@ class ShardingOwner < ActiveRecord::Base
   has_many :sharded_has_manys
   has_many :sharded_joins
   has_many :sharded_has_many_throughs, :through => :sharded_joins
+  has_many :sharded_dependent_has_many_throughs, :through => :sharded_dependent_joins
+  has_and_belongs_to_many :sharded_habtms
 end
 
 # Non-sharded has_one association class
@@ -96,4 +98,26 @@ class ShardedHasManyThrough < ActiveRecord::Base
   shard :by => :owner
 
   has_many :sharded_joins
+end
+
+# Join table for has_many :through with dependent => destroy
+class ShardedDependentJoin < ActiveRecord::Base
+  shard :by => :owner
+
+  belongs_to :sharding_owner
+  belongs_to :sharded_dependent_has_many_through
+end
+
+# Sharded has_many :through association class with dependent => destroy
+class ShardedDependentHasManyThrough < ActiveRecord::Base
+  shard :by => :owner
+
+  has_many :sharded_dependent_joins, :dependent => :destroy
+end
+
+# Sharded habtm association class
+class ShardedHabtm < ActiveRecord::Base
+  shard :by => :owner
+
+  has_and_belongs_to_many :sharding_owners
 end
