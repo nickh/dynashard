@@ -79,9 +79,8 @@ describe 'Dynashard::ValidationExtensions' do
       context 'with a conflicting record on the shard' do
         it 'returns invalid' do
           conflicting_record = Dynashard.with_context(:owner => @owner.shard_dsn){Factory(:sharded_has_one)}
-          new_record = ShardedHasOne.new(:name => conflicting_record.name)
           Dynashard.with_context(:owner => @owner.shard_dsn) do
-            new_record.should_not be_valid
+            ShardedHasOne.new(:name => conflicting_record.name).should_not be_valid
           end
         end
       end
@@ -90,9 +89,8 @@ describe 'Dynashard::ValidationExtensions' do
         it 'returns valid' do
           other_shard = Shard.find(:all).detect{|shard| shard != @owner.shard}
           non_conflicting_record = Dynashard.with_context(:owner => other_shard.dsn){Factory(:sharded_has_one)}
-          new_record = ShardedHasOne.new(:name => non_conflicting_record.name)
           Dynashard.with_context(:owner => @owner.shard_dsn) do
-            new_record.should be_valid
+            ShardedHasOne.new(:name => non_conflicting_record.name).should be_valid
           end
         end
       end

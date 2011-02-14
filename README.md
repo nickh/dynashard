@@ -39,39 +39,34 @@ models may shard using different contexts.
         end
     end
 
-Associated models may be configured to use different shards determined by the
-association's owner.
+Sharded models are returned as objects of a shard-specific subclass.
 
-    class Company < ActiveRecord::Base
-      shard :associated, :using => :shard
-  
-      has_many :customers
-  
-      def shard
-        # logic to find the company's shard
-      end
-    end
-  
-    class Customer < ActiveRecord::Base
-      belongs_to :company
-      shard :by => :company
-    end
-  
-    > c = Company.find(:first)
-    => #<Company id:1>
+    > new_widget = Dynashard.with_context(:user => 'shard1') {Widget.new(:name => 'New widget')}
+    => <#Dynashard::Shard0::Widget id: nil, name: "New widget">
 
-  Company is loaded using the default ActiveRecord connection.
+    > created_widget = Dynashard.with_context(:user => 'shard2') {Widget.create(:name => 'Created widget')}
+    => <#Dynashard::Shard1::Widget id: 1, name: "Created widget">
 
-    > c.customers
-    => [#<Dynashard::Shard0::Customer id: 1>, #<Dynashard::Shard0::Customer id: 2>]
+    > found_widget = Dynashard.with_context(:user => 'shard3') {Widget.find(:first)}
+    => <#Dynashard::Shard2::Widget id: 4, name: "Found widget">
 
-  Customers are loaded using the connection for the Company's shard.  Associated models
-  are returned as shard-specific subclasses of the association class.
+    > found_widgets = Dynashard.with_context(:user => 'shard3') {Widget.find(:all)}
+    => [<#Dynashard::Shard2::Widget id: 4, name: "Found widget">, <#Dynashard::Shard2::Widget id: 5, name: "Other found widget">]
 
-    > c.customers.create(:name => 'Always right')
-    => #<Dynashard::Shard0::Customer id: 3>
+  New objects are saved on the shard with the context that was active
+  when the object was initialized.
 
-  New associations are saved on the Company's shard.
+    > new_widget.save
+    => <#Dynashard::Shard0::Widget id: 1, name: "New widget">  # saved on 'shard1'
+
+  Created and found objects are updated on the shard with the context
+  that was active when they were created or found.
+
+    > created_widget.update_attribute(:name, 'New name')
+    => true  # updated on 'shard2'
+
+    > found_widget.update_attributes(:name => 'Updated name')
+    => true  # updated on 'shard3'
 
 Shard context values may be a valid argument to establish_connection()
 such as a string reference to a configuration from config/database.yml
@@ -96,13 +91,13 @@ establish_connection().
       <<: *defaults
 
     > @widgets = Dynashard.with_context(:user => 'shard1') { Widget.find(:all) }
-    => [#<Widget id:1>, #<Widget id:2>]
+    => [#<Dynashard::Shard0::Widget id:1>, #<Dynashard::Shard0::Widget id:2>]
 
   Load widgets from a shard using a hash of connection params
 
     > conn = {:adapter => 'sqlite3', :database => 'db/shard3.sqlite3'}
     > @widgets = Dynashard.with_context(:user => conn) { Widget.find(:all) }
-    => [#<Widget id:1>, #<Widget id:2>]
+    => [#<Dynashard::Shard2::Widget id:1>, #<Dynashard::Shard2::Widget id:2>]
 
   Create a widget using a method to determine the shard
 
@@ -120,7 +115,7 @@ establish_connection().
     > new_widget = Dynashard.with_context(:user => widget_shard) do
         Widget.create(:name => 'The newest of the widgets')
       end
-    => <#Widget id:3>
+    => <#Dynashard::Shard4::Widget id:3>
 
   Use a Rails initializer for one-time configuration of shard context
 
@@ -132,17 +127,52 @@ establish_connection().
     end
 
     > new_widget = Widget.create(:name => 'Put this on the smallest shard')
-    => <#Widget id:4>
+    => <#Dynashard::Shard5::Widget id:4>
 
   Use with_context to override an earlier context setting
 
     > Dynashard.shard_context[:user] = 'shard1'
     > new_widget = Widget.create(:name => 'Put this on shard1')
-    => <#Widget id:5>
+    => <#Dynashard::Shard0::Widget id:5>
     > new_widget = Dynashard.with_context(:user => 'shard2') do
         Widget.create(:name => 'Put this on shard2')
       do
-    > <#Widget id:6>
+    > <#Dynashard::Shard1::Widget id:6>
+
+Associated models may be configured to use different shards determined by the
+association's owner.
+
+    class Company < ActiveRecord::Base
+      shard :associated, :using => :shard
+
+      has_many :customers
+
+      def shard
+        # logic to find the company's shard
+      end
+    end
+
+    class Customer < ActiveRecord::Base
+      belongs_to :company
+      shard :by => :company
+    end
+
+  Load a Company using the default ActiveRecord connection.
+
+    > c = Company.find(:first)
+    => #<Company id:1>
+
+  Load Customers using the connection for the Company's shard.
+  Associated models are returns as shard-specific subclasses of the
+  association class.
+
+    > c.customers
+    => [#<Dynashard::Shard0::Customer id: 1>, #<Dynashard::Shard0::Customer id: 2>]
+
+  Save new associations on the Company's shard.
+
+    > c.customers.create(:name => 'Always right')
+    => #<Dynashard::Shard0::Customer id: 3>
 
 ## TODO: add gotcha section, eg:
 

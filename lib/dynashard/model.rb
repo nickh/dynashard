@@ -3,18 +3,11 @@ module Dynashard
     def self.extended(base)
       base.extend(ClassMethods)
 
-      # Change ActiveRecord::Base.arel_engine to create an engine for sharded models
-      # rather than using the ActiveRecord::Base class.
-      base.module_eval do
-        def self.arel_engine
-          if sharding_enabled?
-            Arel::Sql::Engine.new(self)
-          elsif self == ActiveRecord::Base
-            Arel::Table.engine
-          else
-            connection_handler.connection_pools[name] ? Arel::Sql::Engine.new(self) : superclass.arel_engine
-          end
-        end
+      class << base
+        alias_method_chain :new,         :dynashard
+        alias_method_chain :instantiate, :dynashard
+        alias_method_chain :create,      :dynashard
+        alias_method_chain :arel_engine, :dynashard
       end
     end
 
@@ -84,6 +77,52 @@ module Dynashard
       # Returns the method used to set the context used for associated models
       def dynashard_association_using
         @dynashard_association_using
+      end
+
+      # For sharded models, return a Arel::Sql::Engine for the shard class rather
+      # than ActiveRecord::Base.
+      def arel_engine_with_dynashard
+        if sharding_enabled?
+          Arel::Sql::Engine.new(self)
+        else
+          arel_engine_without_dynashard
+        end
+      end
+
+      # For sharded models, return new model objects with the sharded subclass
+      #
+      #   > Dynashard.with_context(:owner => 'shard1'){ShardedModel.new(attrs)}
+      #   => <#Dynashard::Shard0::ShardedModel id:nil>
+      def new_with_dynashard(*args)
+        if sharding_enabled?
+          dynashard_sharded_subclass.send(:new_without_dynashard, *args)
+        else
+          new_without_dynashard(*args)
+        end
+      end
+
+      # For sharded models, return instantiated model objects with the sharded subclass
+      #
+      #   > Dynashard.with_context(:owner => 'shard1'){ShardedModel.find(:first)}
+      #   => <#Dynashard::Shard0::ShardedModel id:1>
+      def instantiate_with_dynashard(record)
+        if sharding_enabled?
+          dynashard_sharded_subclass.send(:instantiate_without_dynashard, record)
+        else
+          instantiate_without_dynashard(record)
+        end
+      end
+
+      # For sharded models, return created model objects with the sharded subclass
+      #
+      #   > Dynashard.with_context(:owner => 'shard1'){ShardedModel.create(attrs)}
+      #   => <#Dynashard::Shard0::ShardedModel id:2>
+      def create_with_dynashard(attributes = nil, &block)
+        if sharding_enabled?
+          dynashard_sharded_subclass.send(:create_without_dynashard, attributes, &block)
+        else
+          create_without_dynashard(attributes, &block)
+        end
       end
     end
   end
