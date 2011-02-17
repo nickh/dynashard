@@ -8,6 +8,7 @@ module Dynashard
         alias_method_chain :instantiate, :dynashard
         alias_method_chain :create,      :dynashard
         alias_method_chain :arel_engine, :dynashard
+        alias_method_chain :connection,  :dynashard
       end
     end
 
@@ -122,6 +123,19 @@ module Dynashard
           dynashard_sharded_subclass.send(:create_without_dynashard, attributes, &block)
         else
           create_without_dynashard(attributes, &block)
+        end
+      end
+
+      # For sharded models, return the shard class's connection
+      #
+      #   > conn = Dynashard.with_context(:owner => 'shard1'){ShardedModel.connection}
+      #   > conn == Dynashard::Shard0.connection
+      #   => true
+      def connection_with_dynashard
+        if sharding_enabled?
+          dynashard_sharded_subclass.connection
+        else
+          connection_without_dynashard
         end
       end
     end
