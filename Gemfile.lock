@@ -68,7 +68,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activerecord (>= 3.0)
+  activerecord (~> 3.0.0)
   bundler (~> 1.0.0)
   factory_girl_rails
   jeweler (~> 1.5.2)
