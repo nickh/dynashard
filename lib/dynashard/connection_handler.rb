@@ -27,4 +27,16 @@ module Dynashard
   end
 end
 
+class ActiveRecord::ConnectionAdapters::AbstractAdapter
+
+  # Add the shard identifier to ActiveRecord logging if a sharded
+  # connection is in use.
+  def log_with_dynashard(sql, name, &block)
+    name ||= 'SQL'
+    name += " #{@config[:shard]}" if @config.has_key?(:shard)
+    log_without_dynashard(sql, name, &block)
+  end
+  alias_method_chain :log, :dynashard
+end
+
 ActiveRecord::ConnectionAdapters::ConnectionHandler.send(:include, Dynashard::ConnectionHandlerExtensions)

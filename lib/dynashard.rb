@@ -69,6 +69,18 @@
 #  - uniqueness validations should be scoped by whatever is sharding
 
 module Dynashard
+  # Dynashard::ShardSpecification allows users to associate a name with generated
+  # shard classes
+  class Shard
+    attr_reader :name, :spec
+
+    def initialize(options={})
+      @name = options[:name]
+      @spec = options[:spec]
+      raise ArgumentError.new('missing :spec') if @spec.nil?
+    end
+  end
+
   # Enable sharding for all models configured to do so
   def self.enable
     @enabled = true
@@ -159,12 +171,31 @@ EOE
 
     def self.new_shard_class(spec)
       shard_number = @class_cache.size
-      klass_name = "Shard#{shard_number}"
-      unless const_defined?(klass_name)
-        module_eval("class #{klass_name} < ActiveRecord::Base ; end")
-        "Dynashard::#{klass_name}".constantize.establish_connection(spec)
+      shard_id     = "Shard#{shard_number}"
+      shard = if spec.is_a?(Dynashard::Shard)
+                spec
+              else
+                Dynashard::Shard.new(:name => shard_id, :spec => spec)
+              end
+      unless const_defined?(shard_id)
+        module_eval <<EOE
+          class #{shard_id} < ActiveRecord::Base
+            def self.shard
+              @shard
+            end
+
+            def self.shard=(shard)
+              @shard=shard
+            end
+          end
+EOE
+        module_eval("class #{shard_id} < ActiveRecord::Base ; end")
+        klass = "Dynashard::#{shard_id}".constantize
+        klass.shard = shard
+        klass.establish_connection(shard.spec)
+        ActiveRecord::Base.connection_handler.connection_pools[klass.name].spec.config[:shard] = shard.name
       end
-      "Dynashard::#{klass_name}".constantize
+      "Dynashard::#{shard_id}".constantize
     end
 end
 
